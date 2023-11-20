@@ -15,6 +15,8 @@
 <canvas id="gameCanvas" width="400" height="400"></canvas>
 <button id="moveLeftButton">Move Left</button>
 <button id="moveRightButton">Move Right</button>
+<p>Score: <span id="score">0</span></p>
+<p>High Score: <span id="highScore">0</span></p>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
@@ -34,6 +36,10 @@
     // Button controls
     const moveLeftButton = document.getElementById('moveLeftButton');
     const moveRightButton = document.getElementById('moveRightButton');
+
+    // Score
+    let score = 0;
+    let highScore = localStorage.getItem('highScore') || 0;
 
     // Set up event listeners for buttons
     moveLeftButton.addEventListener('click', function() {
@@ -60,11 +66,17 @@
         ctx.closePath();
     }
 
+    function drawScore() {
+        document.getElementById('score').textContent = score;
+        document.getElementById('highScore').textContent = highScore;
+    }
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         drawBall();
         drawPaddle();
+        drawScore();
 
         // Update ball position
         ballY += ballSpeedY;
@@ -81,11 +93,12 @@
             ballX < paddleX + paddleWidth
         ) {
             ballSpeedY = -ballSpeedY;
+            increaseScore();
         }
 
         // Keep the ball within the canvas bounds
         if (ballY + ballRadius > canvas.height) {
-            ballY = canvas.height - ballRadius;
+            resetGame();
         }
 
         // Request next frame
@@ -98,6 +111,21 @@
         } else if (direction === 'right' && paddleX < canvas.width - paddleWidth) {
             paddleX += 10;
         }
+    }
+
+    function increaseScore() {
+        score++;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+        }
+    }
+
+    function resetGame() {
+        score = 0;
+        ballX = canvas.width / 2;
+        ballY = 30;
+        paddleX = (canvas.width - paddleWidth) / 2;
     }
 
     draw();  // Start the game loop
