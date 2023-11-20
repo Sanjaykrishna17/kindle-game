@@ -3,96 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text-Based Platformer</title>
+    <title>Catch the Ball Game</title>
     <style>
-        pre {
-            font-family: monospace;
-            white-space: pre-wrap;
+        canvas {
+            border: 1px solid #000;
         }
     </style>
 </head>
 <body>
-    <pre id="game"></pre>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const gameContainer = document.getElementById('game');
-            let gameWorld = [
-                "#######",
-                "#     #",
-                "#  O  #",
-                "#     #",
-                "#  X  #",
-                "#######"
-            ];
+<canvas id="gameCanvas" width="400" height="400"></canvas>
 
-            function displayGame() {
-                gameContainer.textContent = gameWorld.join('\n');
-            }
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-            function movePlayer(direction) {
-                gameWorld.forEach((row, i) => {
-                    if (row.includes('O')) {
-                        const playerIndex = row.indexOf('O');
+    // Ball properties
+    let ballRadius = 20;
+    let ballX = canvas.width / 2;
+    let ballY = 30;
+    let ballSpeedY = 2;
 
-                        if (direction === 'left' && playerIndex > 0 && row[playerIndex - 1] !== '#') {
-                            gameWorld[i] = row.substr(0, playerIndex - 1) + 'O' + row.substr(playerIndex);
-                        } else if (direction === 'right' && playerIndex < row.length - 1 && row[playerIndex + 1] !== '#') {
-                            gameWorld[i] = row.substr(0, playerIndex) + 'O' + row.substr(playerIndex + 1);
-                        }
-                    }
-                });
-            }
+    // Paddle properties
+    let paddleHeight = 10;
+    let paddleWidth = 80;
+    let paddleX = (canvas.width - paddleWidth) / 2;
 
-            function checkCollision() {
-                const playerRow = gameWorld.findIndex(row => row.includes('O'));
+    // Keyboard controls
+    let rightPressed = false;
+    let leftPressed = false;
 
-                if (playerRow < gameWorld.length - 1) {
-                    const playerIndex = gameWorld[playerRow].indexOf('O');
-                    return gameWorld[playerRow + 1][playerIndex] === '#';
-                }
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = '#0095DD';
+        ctx.fill();
+        ctx.closePath();
+    }
 
-                return false;
-            }
+    function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = '#0095DD';
+        ctx.fill();
+        ctx.closePath();
+    }
 
-            function platformerGame() {
-                displayGame();
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                document.addEventListener('keydown', function (event) {
-                    if (event.key === 'ArrowLeft') {
-                        movePlayer('left');
-                    } else if (event.key === 'ArrowRight') {
-                        movePlayer('right');
-                    }
+        drawBall();
+        drawPaddle();
 
-                    if (checkCollision()) {
-                        alert("Game Over! You collided with an obstacle or fell off the platform.");
-                        resetGame();
-                    }
+        // Update ball position
+        ballY += ballSpeedY;
 
-                    if (gameWorld[gameWorld.length - 1].includes('X')) {
-                        alert("Congratulations! You reached the goal!");
-                        resetGame();
-                    }
+        // Bounce the ball off the walls
+        if (ballX + ballRadius > canvas.width || ballX - ballRadius < 0) {
+            ballSpeedY = -ballSpeedY;
+        }
 
-                    displayGame();
-                });
+        // Bounce the ball off the paddle
+        if (
+            ballY + ballRadius > canvas.height - paddleHeight &&
+            ballX > paddleX &&
+            ballX < paddleX + paddleWidth
+        ) {
+            ballSpeedY = -ballSpeedY;
+        }
 
-                function resetGame() {
-                    gameWorld = [
-                        "#######",
-                        "#     #",
-                        "#  O  #",
-                        "#     #",
-                        "#  X  #",
-                        "#######"
-                    ];
-                    displayGame();
-                }
-            }
+        // Move the paddle based on keyboard input
+        if (rightPressed && paddleX < canvas.width - paddleWidth) {
+            paddleX += 5;
+        } else if (leftPressed && paddleX > 0) {
+            paddleX -= 5;
+        }
 
-            platformerGame();
-        });
-    </script>
+        // Request next frame
+        requestAnimationFrame(draw);
+    }
+
+    function keyDownHandler(e) {
+        if (e.key === 'Right' || e.key === 'ArrowRight') {
+            rightPressed = true;
+        } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+            leftPressed = true;
+        }
+    }
+
+    function keyUpHandler(e) {
+        if (e.key === 'Right' || e.key === 'ArrowRight') {
+            rightPressed = false;
+        } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+            leftPressed = false;
+        }
+    }
+
+    document.addEventListener('keydown', keyDownHandler, false);
+    document.addEventListener('keyup', keyUpHandler, false);
+
+    draw();  // Start the game loop
+</script>
+
 </body>
 </html>
