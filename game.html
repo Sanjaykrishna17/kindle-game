@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-Based Platformer</title>
+    <style>
+        pre {
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <pre id="game"></pre>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const gameContainer = document.getElementById('game');
+            let gameWorld = [
+                "#######",
+                "#     #",
+                "#  O  #",
+                "#     #",
+                "#  X  #",
+                "#######"
+            ];
+
+            function displayGame() {
+                gameContainer.textContent = gameWorld.join('\n');
+            }
+
+            function movePlayer(direction) {
+                gameWorld.forEach((row, i) => {
+                    if (row.includes('O')) {
+                        const playerIndex = row.indexOf('O');
+
+                        if (direction === 'left' && playerIndex > 0 && row[playerIndex - 1] !== '#') {
+                            gameWorld[i] = row.substr(0, playerIndex - 1) + 'O' + row.substr(playerIndex);
+                        } else if (direction === 'right' && playerIndex < row.length - 1 && row[playerIndex + 1] !== '#') {
+                            gameWorld[i] = row.substr(0, playerIndex) + 'O' + row.substr(playerIndex + 1);
+                        }
+                    }
+                });
+            }
+
+            function checkCollision() {
+                const playerRow = gameWorld.findIndex(row => row.includes('O'));
+
+                if (playerRow < gameWorld.length - 1) {
+                    const playerIndex = gameWorld[playerRow].indexOf('O');
+                    return gameWorld[playerRow + 1][playerIndex] === '#';
+                }
+
+                return false;
+            }
+
+            function platformerGame() {
+                displayGame();
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'ArrowLeft') {
+                        movePlayer('left');
+                    } else if (event.key === 'ArrowRight') {
+                        movePlayer('right');
+                    }
+
+                    if (checkCollision()) {
+                        alert("Game Over! You collided with an obstacle or fell off the platform.");
+                        resetGame();
+                    }
+
+                    if (gameWorld[gameWorld.length - 1].includes('X')) {
+                        alert("Congratulations! You reached the goal!");
+                        resetGame();
+                    }
+
+                    displayGame();
+                });
+
+                function resetGame() {
+                    gameWorld = [
+                        "#######",
+                        "#     #",
+                        "#  O  #",
+                        "#     #",
+                        "#  X  #",
+                        "#######"
+                    ];
+                    displayGame();
+                }
+            }
+
+            platformerGame();
+        });
+    </script>
+</body>
+</html>
